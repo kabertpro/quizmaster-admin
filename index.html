@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuizMaster Edu - Plataforma de Cuestionarios</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+
+    <style>
+        :root {
+            --violeta: #6c5ce7;
+            --violeta-oscuro: #5b4cdb;
+            --menta: #00b894;
+            --esmeralda: #2ecc71;
+            --coral: #ff7675;
+            --carbon: #2d3436;
+            --gris-claro: #f5f6fa;
+            --blanco: #ffffff;
+            --fuente-titulo: 'Fredoka', sans-serif;
+            --fuente-cuerpo: 'Outfit', sans-serif;
+            --sombra: 0 8px 24px rgba(108, 92, 231, 0.12);
+            --borde-radio: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--fuente-cuerpo);
+            background-color: var(--gris-claro);
+            color: var(--carbon);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Utilidades de ocultación */
+        .hidden { display: none !important; }
+
+        /* Contenedores Principales */
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* 1. Splash Screen (Pantalla de carga inicial) */
+        #screen-splash {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, var(--violeta), var(--violeta-oscuro));
+            color: var(--blanco);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+        #screen-splash.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .splash-logo {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            color: #ffeaa7;
+        }
+        .splash-title {
+            font-family: var(--fuente-titulo);
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        /* 2. Barra de Navegación Superior */
+        .navbar {
+            background-color: var(--blanco);
+            box-shadow: var(--sombra);
+            padding: 15px 0;
+            position: sticky;
+            top: 0; z-index: 100;
+        }
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        .nav-logo {
+            font-family: var(--fuente-titulo);
+            font-size: 1.6rem;
+            color: var(--violeta);
+            text-decoration: none;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            list-style: none;
+        }
+        .nav-link {
+            color: var(--carbon);
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .nav-link:hover { color: var(--violeta); }
+
+        /* 3. Sistema de Pantallas Virtuales */
+        .screen {
+            display: none;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+        .screen.active { display: block; }
+
+        /* 4. Componentes Visuales Estándar (Tarjetas y Botones) */
+        .card {
+            background-color: var(--blanco);
+            border-radius: var(--borde-radio);
+            padding: 30px;
+            box-shadow: var(--sombra);
+            margin-bottom: 25px;
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+        .grid-layout {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+        .quiz-card {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .quiz-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(108, 92, 231, 0.2);
+        }
+        .quiz-meta-tags {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+        }
+        .badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            background-color: var(--gris-claro);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .badge-level { background-color: rgba(108, 92, 231, 0.1); color: var(--violeta); }
+        .badge-time { background-color: rgba(0, 184, 148, 0.1); color: var(--menta); }
+
+        .btn {
+            font-family: var(--fuente-cuerpo);
+            font-weight: 700;
+            padding: 12px 24px;
+            border-radius: var(--borde-radio);
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+        .btn-primary { background-color: var(--violeta); color: var(--blanco); }
+        .btn-primary:hover { background-color: var(--violeta-oscuro); }
+        .btn-secondary { background-color: var(--gris-claro); color: var(--carbon); }
+        .btn-secondary:hover { background-color: #e2e4f0; }
+        .btn-block { width: 100%; }
+        
+        /* 5. Interfaz del Formulario de Autenticación */
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--carbon);
+        }
+        .form-control {
+            width: 100%;
+            padding: 14px;
+            border-radius: var(--borde-radio);
+            border: 2px solid #e2e4f0;
+            font-family: var(--fuente-cuerpo);
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .form-control:focus { border-color: var(--violeta); }
+
+        /* 6. Mecánica del Juego de Preguntas */
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .timer-box {
+            background-color: var(--carbon);
+            color: #ffeaa7;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .progress-container {
+            width: 100%;
+            height: 100%;
+            background-color: #e2e4f0;
+            border-radius: 10px;
+            height: 10px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background-color: var(--menta);
+            transition: width 0.3s ease;
+        }
+        .options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        .btn-option {
+            background-color: var(--blanco);
+            border: 2px solid #e2e4f0;
+            text-align: left;
+            justify-content: flex-start;
+            padding: 18px;
+            font-size: 1.1rem;
+            color: var(--carbon);
+        }
+        .btn-option:hover {
+            border-color: var(--violeta);
+            background-color: rgba(108, 92, 231, 0.03);
+            transform: scale(1.01);
+        }
+        .option-letter {
+            background-color: var(--gris-claro);
+            color: var(--violeta);
+            width: 32px; height: 32px;
+            display: inline-flex;
+            align-items: center; justify-content: center;
+            border-radius: 50%;
+            font-weight: 700;
+            margin-right: 15px;
+        }
+
+        /* 7. Tablas analíticas de resultados */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+        .table-results {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+        .table-results th, .table-results td {
+            padding: 14px;
+            border-bottom: 1px solid #e2e4f0;
+        }
+        .table-results th { background-color: var(--gris-claro); font-weight: 700; }
+
+        /* Loader animado */
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--violeta);
+            border-radius: 50%;
+            width: 50px; height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 40px auto;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+    <div id="screen-splash" class="active">
+        <i class="fa-solid fa-graduation-cap splash-logo animate__animated animate__bounceIn"></i>
+        <h1 class="splash-title animate__animated animate__pulse animate__infinite">QuizMaster Edu</h1>
+        <p style="margin-top: 10px; font-weight: 300; letter-spacing: 1px;">Cargando entorno de aprendizaje...</p>
+    </div>
+
+    <nav id="main-nav" class="navbar hidden">
+        <div class="nav-container">
+            <a href="#" data-target="screen-dashboard" class="nav-logo">
+                <i class="fa-solid fa-brain"></i> QuizMaster Edu
+            </a>
+            <ul class="nav-menu">
+                <li><a data-target="screen-dashboard" class="nav-link"><i class="fa-solid fa-house"></i> Inicio</a></li>
+                <li><a id="nav-admin-link" data-target="screen-admin" class="nav-link hidden"><i class="fa-solid fa-toolbox"></i> Administración</a></li>
+                <li id="user-nav-status">
+                    </li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container" style="margin-top: 30px;">
+
+        <section id="screen-dashboard" class="screen">
+            <div style="margin-bottom: 30px; text-align: left;">
+                <h2 style="font-family: var(--fuente-titulo); font-size: 2.2rem;">Evaluaciones Disponibles</h2>
+                <p style="color: #7f8c8d;">Selecciona un cuestionario activo para evaluar tus conocimientos y competencias.</p>
+            </div>
+            <div id="quizzes-container" class="grid-layout">
+                </div>
+        </section>
+
+        <section id="screen-login" class="screen" style="max-width: 500px; margin: 0 auto;">
+            <div class="card text-center">
+                <i class="fa-solid fa-user-astronaut" style="font-size: 3.5rem; color: var(--violeta); margin-bottom: 15px;"></i>
+                <h2 style="font-family: var(--fuente-titulo); margin-bottom: 10px;">Perfil de Ingreso</h2>
+                <p style="color: #7f8c8d; margin-bottom: 25px;">Identifícate para guardar tus marcas y ver cuestionarios de tu curso.</p>
+                
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="input-username">Nombre de Usuario / Alias</label>
+                        <input type="text" id="input-username" class="form-control" placeholder="Ej: JoseVargas" required autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label for="select-level">Año de Escolaridad / Curso</label>
+                        <select id="select-level" class="form-control">
+                            <option value="Todos">General / Todos los niveles</option>
+                            <option value="1ro Secundaria">1ro de Secundaria</option>
+                            <option value="2do Secundaria">2do de Secundaria</option>
+                            <option value="3ro Secundaria">3ro de Secundaria</option>
+                            <option value="4to Secundaria">4to de Secundaria</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block" style="margin-top: 10px;">
+                        <i class="fa-solid fa-right-to-bracket"></i> Acceder a la Plataforma
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <section id="screen-game" class="screen">
+            <div class="card">
+                <div class="game-header">
+                    <div>
+                        <h2 id="game-quiz-title" style="font-family: var(--fuente-titulo); color: var(--violeta);">Cargando Cuestionario...</h2>
+                        <p id="game-progress-text" style="color:#7f8c8d; font-weight:600; margin-top:5px;"></p>
+                    </div>
+                    <div class="timer-box">
+                        <i class="fa-solid fa-hourglass-half"></i> <span id="game-timer-seconds">30</span>s
+                    </div>
+                </div>
+
+                <div class="progress-container">
+                    <div id="game-progress-bar" class="progress-bar"></div>
+                </div>
+
+                <div style="background: var(--gris-claro); padding: 25px; border-radius: var(--borde-radio); border-left: 5px solid var(--violeta);">
+                    <h3 id="game-question-text" style="font-size: 1.3rem; font-weight: 700;">Instanciando pregunta del servidor...</h3>
+                </div>
+
+                <div id="game-options-container" class="options-grid">
+                    </div>
+            </div>
+        </section>
+
+        <section id="screen-results" class="screen" style="max-width: 850px; margin: 0 auto;">
+            <div class="card text-center">
+                <i class="fa-solid fa-trophy" style="font-size: 4rem; color: #f1c40f; margin-bottom: 15px;"></i>
+                <h2 style="font-family: var(--fuente-titulo); font-size: 2.2rem;">¡Evaluación Concluida!</h2>
+                <p style="color: #7f8c8d;">Informe de rendimiento pedagógico y puntaje acumulado.</p>
+                
+                <div style="margin: 25px 0; background: var(--gris-claro); padding: 20px; border-radius: var(--borde-radio);">
+                    <span style="font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; color: #7f8c8d;">Puntuación Total</span>
+                    <h1 id="results-score-value" style="font-size: 3.5rem; color: var(--violeta); font-family: var(--fuente-titulo);">0 Puntos</h1>
+                </div>
+
+                <h3 style="text-align: left; margin-top: 30px; font-family: var(--fuente-titulo);"><i class="fa-solid fa-magnifying-glass-chart"></i> Revisión de Respuestas</h3>
+                <div class="table-responsive">
+                    <table class="table-results">
+                        <thead>
+                            <tr>
+                                <th>Nº</th>
+                                <th>Pregunta Evaluada</th>
+                                <th>Tu Selección</th>
+                                <th>Solución Correcta</th>
+                            </tr>
+                        </thead>
+                        <tbody id="results-summary-body">
+                            </tbody>
+                    </table>
+                </div>
+
+                <button onclick="app.navigateTo('screen-dashboard')" class="btn btn-primary" style="margin-top: 30px;">
+                    <i class="fa-solid fa-rotate-left"></i> Volver al Catálogo Principal
+                </button>
+            </div>
+        </section>
+
+        <section id="screen-admin" class="screen">
+            <div style="margin-bottom: 30px;">
+                <h2 style="font-family: var(--fuente-titulo); font-size: 2.2rem;">Panel de Gestión Pedagógica</h2>
+                <p style="color: #7f8c8d;">Carga nuevos cuestionarios estructurados mediante archivos planos de texto (.txt).</p>
+            </div>
+
+            <div id="admin-stats-summary" style="margin-bottom: 25px;">
+                </div>
+
+            <div class="card">
+                <h3 style="margin-bottom: 15px;"><i class="fa-solid fa-cloud-arrow-up"></i> Subir Nueva Matriz de Evaluación</h3>
+                <p style="font-size: 0.95rem; margin-bottom: 20px; color:#7f8c8d;">
+                    Selecciona un archivo <code>.txt</code> codificado en UTF-8 que cumpla con los prefijos: <code>CUESTIONARIO:</code>, <code>NIVEL:</code>, <code>TIEMPO:</code>, enumeración de preguntas, guiones para opciones y <code>OK:</code> para marcar la respuesta válida.
+                </p>
+                
+                <div style="border: 2px dashed var(--violeta); padding: 40px; border-radius: var(--borde-radio); text-align: center; background-color: rgba(108, 92, 231, 0.01);">
+                    <i class="fa-solid fa-file-lines" style="font-size: 3rem; color: var(--violeta); margin-bottom: 15px;"></i>
+                    <div style="margin-bottom: 15px;">
+                        <input type="file" id="quiz-file-input" accept=".txt" style="display: none;">
+                        <button onclick="document.getElementById('quiz-file-input').click()" class="btn btn-secondary">
+                            <i class="fa-solid fa-folder-open"></i> Seleccionar Archivo TXT
+                        </button>
+                    </div>
+                    <small style="color: #95a5a6;">Tamaño máximo recomendado: 2MB por plantilla de curso.</small>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <script>
+        // Configuración de credenciales vinculadas al ID: recordinter1
+        const firebaseConfig = {
+            apiKey: "AIzaSy...", // Reemplaza esto con tu API Key real de Firebase Console si difiere
+            authDomain: "recordinter1.firebaseapp.com",
+            projectId: "recordinter1",
+            storageBucket: "recordinter1.appspot.com",
+            messagingSenderId: "37548", // Sincronizado con tu reporte de RID de red
+            appId: "1:37548:web:7D8Ji5Fk6s"
+        };
+        
+        // Inicialización del Singleton de Firebase
+        firebase.initializeApp(firebaseConfig);
+        
+        // Instancia del servicio Firestore resolviendo errores de canal mediante Long-Polling obligado
+        const db = firebase.firestore();
+        db.settings({
+            experimentalForceLongPolling: true
+        });
+        
+        console.log("Servicio Firebase Cloud Firestore inicializado en Modo Polling.");
+    </script>
+
+    <script src="app.js"></script>
+</body>
+</html>
