@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QUIZMASTER EDU</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="splash-screen">
+        <img src="assets/logo.png" alt="Logo" style="width: 150px; margin-bottom: 20px; display:none;"> <h1>QUIZMASTER EDU</h1>
+        <p>Aprender, Jugar y Superarse</p>
+        <p style="font-size: 0.8rem; color: #ccc;">Desarrollado por Kabert Studio - LMKE</p>
+    </div>
+
+    <script>
+        // Reproducir sonido de bienvenida e ir al login/dashboard
+        window.addEventListener('load', () => {
+            // let audio = new Audio('assets/sounds/success.mp3'); audio.play().catch(e=>console.log(e));
+            setTimeout(() => {
+                window.location.href = 'login.html';
+            }, 3000);
+        });
+    </script>
+</body>
+</html>
