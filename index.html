@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuizMaster Edu - Kabert Studio</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&family=Space+Grotesk:wght@400..700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.6.0/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+
+    <section id="screen-splash" class="screen active">
+        <div class="splash-content">
+            <div class="splash-logo">
+                <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+            <h1>QUIZMASTER EDU</h1>
+            <p class="subtitle">Aprender, Jugar y Superarse</p>
+            <div class="loader"></div>
+            <p class="credits">Kabert Studio - LMKE</p>
+        </div>
+    </section>
+
+    <nav id="main-nav" class="hidden">
+        <div class="nav-container">
+            <div class="nav-logo" onclick="app.navigateTo('screen-dashboard')">
+                <i class="fa-solid fa-bolt"></i> QuizMaster
+            </div>
+            <div class="nav-links" id="nav-auth-links">
+                <button onclick="app.navigateTo('screen-login')" class="btn btn-secondary btn-sm">Iniciar Sesión</button>
+                <button onclick="app.navigateTo('screen-register')" class="btn btn-primary btn-sm">Registrarse</button>
+            </div>
+            <div class="nav-links hidden" id="nav-user-links">
+                <span id="nav-username"><i class="fa-solid fa-user"></i> Hola</span>
+                <button onclick="app.navigateTo('screen-ranking')" class="btn btn-icon" title="Ranking Global"><i class="fa-solid fa-trophy"></i></button>
+                <button onclick="app.navigateTo('screen-profile')" class="btn btn-icon" title="Mi Perfil"><i class="fa-solid fa-id-card"></i></button>
+                <button onclick="app.logout()" class="btn btn-coral btn-sm">Salir</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+
+        <section id="screen-login" class="screen hidden">
+            <div class="card auth-card">
+                <h2>¡Hola de nuevo! 👋</h2>
+                <p>Ingresa tus datos para continuar jugando.</p>
+                <form id="form-login">
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-user"></i> Usuario</label>
+                        <input type="text" id="login-username" required placeholder="Tu nombre de usuario">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-lock"></i> Contraseña</label>
+                        <input type="password" id="login-password" required placeholder="••••••••">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Ingresar</button>
+                </form>
+                <p class="auth-switch">¿No tienes cuenta? <a onclick="app.navigateTo('screen-register')">Regístrate aquí</a></p>
+            </div>
+        </section>
+
+        <section id="screen-register" class="screen hidden">
+            <div class="card auth-card">
+                <h2>¡Únete a la aventura! 🚀</h2>
+                <p>Crea tu cuenta estudiantil en segundos.</p>
+                <form id="form-register">
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-id-card"></i> Nombre Completo</label>
+                        <input type="text" id="reg-fullname" required placeholder="Ej. Juan Pérez">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-layer-group"></i> Nivel Académico</label>
+                        <select id="reg-level" required>
+                            <option value="Inicial">Inicial</option>
+                            <option value="Primaria">Primaria</option>
+                            <option value="Secundaria">Secundaria</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-user-tag"></i> Usuario</label>
+                        <input type="text" id="reg-username" required placeholder="Ej. juanito123">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-lock"></i> Contraseña</label>
+                        <input type="password" id="reg-password" required placeholder="Crea una contraseña">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Crear Cuenta</button>
+                </form>
+                <p class="auth-switch">¿Ya tienes cuenta? <a onclick="app.navigateTo('screen-login')">Inicia sesión</a></p>
+            </div>
+        </section>
+
+        <section id="screen-dashboard" class="screen hidden">
+            <div class="dashboard-header">
+                <div>
+                    <h2>Panel de Cuestionarios</h2>
+                    <p>Elige un desafío y demuestra tu conocimiento.</p>
+                </div>
+                <button id="btn-admin-panel" onclick="app.navigateTo('screen-admin')" class="btn btn-secondary hidden">
+                    <i class="fa-solid fa-gear"></i> Panel Admin
+                </button>
+            </div>
+            <div class="quiz-grid" id="quizzes-container">
+                </div>
+        </section>
+
+        <section id="screen-countdown" class="screen hidden">
+            <div class="countdown-wrapper">
+                <div id="countdown-number">3</div>
+            </div>
+        </section>
+
+        <section id="screen-quiz" class="screen hidden">
+            <div class="quiz-layout">
+                <div class="quiz-sidebar">
+                    <div class="card status-card">
+                        <h3 id="active-quiz-title">Cuestionario</h3>
+                        <hr>
+                        <div class="status-item">
+                            <i class="fa-solid fa-clock timer-icon"></i>
+                            <span id="quiz-timer">00:00</span>
+                        </div>
+                        <div class="status-item">
+                            <i class="fa-solid fa-star text-warning"></i>
+                            <span>Pregunta: <strong id="quiz-progress">0/0</strong></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="quiz-main">
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-fill" id="quiz-progress-bar"></div>
+                    </div>
+                    <div class="card question-card">
+                        <h2 id="question-text">¿Cargando pregunta?</h2>
+                        <div class="options-grid" id="options-container">
+                            </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="screen-results" class="screen hidden">
+            <div class="card results-card text-center">
+                <div id="results-icon-container"></div>
+                <h2 id="results-headline">¡Buen intento!</h2>
+                <p id="results-motivation" class="motivation-text"></p>
+                
+                <div class="stats-summary-grid">
+                    <div class="stat-box">
+                        <span class="stat-label">Puntaje</span>
+                        <span class="stat-value" id="res-score">0 pts</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">Tiempo</span>
+                        <span class="stat-value" id="res-time">00:00</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">Intento</span>
+                        <span class="stat-value" id="res-attempt">#0</span>
+                    </div>
+                </div>
+
+                <div class="results-actions">
+                    <button onclick="app.downloadPDF()" class="btn btn-primary"><i class="fa-solid fa-file-pdf"></i> Descargar PDF</button>
+                    <button onclick="app.navigateTo('screen-dashboard')" class="btn btn-secondary">Ir al Inicio</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="screen-ranking" class="screen hidden">
+            <div class="card ranking-card">
+                <div class="ranking-header">
+                    <h2><i class="fa-solid fa-trophy text-warning"></i> Salón de la Fama - Top 20</h2>
+                    <p>Los mejores puntajes y los tiempos más rápidos de la plataforma.</p>
+                </div>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Posición</th>
+                                <th>Estudiante</th>
+                                <th>Nivel</th>
+                                <th>Cuestionario</th>
+                                <th>Puntaje</th>
+                                <th>Tiempo</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ranking-tbody">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="screen-profile" class="screen hidden">
+            <div class="profile-layout">
+                <div class="card profile-info-card text-center">
+                    <div class="profile-avatar">
+                        <i class="fa-solid fa-user-astronaut"></i>
+                    </div>
+                    <h2 id="profile-name">Cargando...</h2>
+                    <span class="badge" id="profile-level">Nivel</span>
+                    <p class="profile-username">@<span id="profile-user-tag">usuario</span></p>
+                    
+                    <div class="gamification-badges">
+                        <div class="g-badge" title="Puntos de Experiencia acumulados">
+                            <i class="fa-solid fa-bolt"></i>
+                            <span id="badge-xp">0 XP</span>
+                        </div>
+                        <div class="g-badge" title="Cuestionarios perfectos con medalla">
+                            <i class="fa-solid fa-medal"></i>
+                            <span id="badge-medals">0 Medallas</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card profile-records-card">
+                    <h3>Mis mejores récords</h3>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Cuestionario</th>
+                                    <th>Mejor Puntaje</th>
+                                    <th>Mejor Tiempo</th>
+                                    <th>Intentos Usados</th>
+                                </tr>
+                            </thead>
+                            <tbody id="profile-records-tbody">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="screen-admin" class="screen hidden">
+            <div class="card admin-card">
+                <h2><i class="fa-solid fa-screwdriver-wrench"></i> Panel de Administración</h2>
+                <p>Carga nuevos cuestionarios mediante archivos de texto plano estructurados.</p>
+                
+                <hr>
+                
+                <form id="form-upload-quiz" class="admin-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Título del Cuestionario</label>
+                            <input type="text" id="adm-title" required placeholder="Ej. Evaluación de Historia Precolombina">
+                        </div>
+                        <div class="form-group">
+                            <label>Curso / Destino</label>
+                            <select id="adm-level" required>
+                                <option value="Inicial">Inicial</option>
+                                <option value="Primaria">Primaria</option>
+                                <option value="Secundaria">Secundaria</option>
+                                <option value="Todos">Todos los Niveles</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Puntaje Máximo</label>
+                            <input type="number" id="adm-max-score" required value="100" min="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Tiempo Máximo Ideal (Segundos)</label>
+                            <input type="number" id="adm-time" required value="120" min="10">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Cargar Archivo de Preguntas (.txt)</label>
+                        <div class="file-drop-zone">
+                            <input type="file" id="adm-file" accept=".txt" required>
+                            <p><i class="fa-solid fa-cloud-arrow-up"></i> Selecciona un archivo estructurado</p>
+                        </div>
+                        <small class="form-help">
+                            Formato admitido:<br>
+                            Pregunta<br>
+                            A) Opción<br>
+                            B) Opción correcta R<br>
+                            C) Opción<br>
+                            D) Opción
+                        </small>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Procesar y Publicar Cuestionario</button>
+                </form>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
